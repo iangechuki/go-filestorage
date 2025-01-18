@@ -10,4 +10,5 @@ type Peer interface {
 
 type Transport interface {
 	ListenAndAccept()
+	Consume() <-chan RPC
 }
