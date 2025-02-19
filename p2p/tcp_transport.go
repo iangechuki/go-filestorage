@@ -76,7 +76,7 @@ func (t *TCPTransport) handleConn(conn net.Conn) {
 	var error error
 
 	defer func() {
-		fmt.Printf("dropping perr connection: %+v\n", error)
+		fmt.Printf("dropping peer connection: %+v\n", error)
 		conn.Close()
 	}()
 
