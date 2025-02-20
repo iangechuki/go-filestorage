@@ -9,6 +9,8 @@ type Peer interface {
 // of TCP, UDP, WebRTC
 
 type Transport interface {
-	ListenAndAccept()
+	Dial(string) error
+	ListenAndAccept() error
 	Consume() <-chan RPC
+	Close() error
 }

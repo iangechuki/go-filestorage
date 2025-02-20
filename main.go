@@ -1,27 +1,32 @@
 package main
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/IANGECHUKI176/go-filestorage/p2p"
 )
 
-func main() {
+func makeServer(listenAddr string, nodes ...string) *FileServer {
 	tcpOpts := p2p.TCPTransportOpts{
-		ListenAddr:    ":3000",
+		ListenAddr:    listenAddr,
 		HandshakeFunc: p2p.NOPHandshakeFunc,
 		Decoder:       p2p.DefaultDecoder{},
 	}
 	tr := p2p.NewTCPTransport(tcpOpts)
-	go func() {
-		for {
-			msg := <-tr.Consume()
-			fmt.Printf("msg:%+v\n ", msg)
-		}
-	}()
-	if err := tr.ListenAndAccept(); err != nil {
-		log.Fatal(err)
+
+	fileServerOpts := FileServerOpts{
+		StorageRoot:       listenAddr + "_network",
+		PathTransformFunc: CASPathTransformFunc,
+		Transport:         tr,
+		BootstrapNodes:    nodes,
 	}
-	select {}
+	return NewFileServer(fileServerOpts)
+}
+func main() {
+	s1 := makeServer(":3000", "")
+	s2 := makeServer(":4000", ":3000")
+	go func() {
+		log.Fatal(s2.Start())
+	}()
+	s1.Start()
 }
