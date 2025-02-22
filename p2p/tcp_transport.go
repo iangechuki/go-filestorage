@@ -10,7 +10,7 @@ import (
 // TCPPeer represents remote node over a TCP est connection
 type TCPPeer struct {
 	// conn is the underlying connection of the peer
-	conn net.Conn
+	net.Conn
 	// if we dial and retrieve a conn => outbound == true
 	// if we accept and retrieve a conn => outbound == false
 	outbound bool
@@ -18,14 +18,14 @@ type TCPPeer struct {
 
 func NewTCPPeer(conn net.Conn, outbound bool) *TCPPeer {
 	return &TCPPeer{
-		conn:     conn,
+		Conn:     conn,
 		outbound: outbound,
 	}
 }
 
-// Close implements the peer interface
-func (p *TCPPeer) Close() error {
-	return p.conn.Close()
+func (p *TCPPeer) Send(msg []byte) error {
+	_, err := p.Conn.Write(msg)
+	return err
 }
 
 type TCPTransportOpts struct {
@@ -86,7 +86,7 @@ func (t *TCPTransport) startAcceptLoop() {
 		if err != nil {
 			fmt.Printf("TCP accept error: %s\n", err)
 		}
-		fmt.Printf("New incoming connection: %+v\n", conn)
+		fmt.Printf("New incoming connection: %+v\n", conn.RemoteAddr())
 		go t.handleConn(conn, false)
 	}
 }
@@ -99,7 +99,7 @@ func (t *TCPTransport) handleConn(conn net.Conn, outbound bool) {
 		conn.Close()
 	}()
 
-	peer := NewTCPPeer(conn, true)
+	peer := NewTCPPeer(conn, outbound)
 	if err := t.HandshakeFunc(peer); err != nil {
 		fmt.Printf("handshake error: %s\n", err)
 		conn.Close()
