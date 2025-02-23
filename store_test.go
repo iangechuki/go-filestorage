@@ -25,7 +25,7 @@ func TestStore(t *testing.T) {
 	for i := 0; i < 50; i++ {
 		key := fmt.Sprintf("myspecialkey_%d", i)
 		data := []byte("new data")
-		if err := s.writeStream(key, bytes.NewReader(data)); err != nil {
+		if _, err := s.writeStream(key, bytes.NewReader(data)); err != nil {
 			t.Error(err)
 		}
 		if !s.Has(key) {
@@ -56,7 +56,7 @@ func TestStoreDelete(t *testing.T) {
 	s := NewStore(opts)
 	key := "myspecialkey"
 	data := []byte("new data")
-	if err := s.writeStream(key, bytes.NewReader(data)); err != nil {
+	if _, err := s.writeStream(key, bytes.NewReader(data)); err != nil {
 		t.Error(err)
 	}
 	err := s.Delete(key)

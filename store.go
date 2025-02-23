@@ -6,7 +6,6 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"strings"
 )
@@ -105,32 +104,26 @@ func (s *Store) readStream(key string) (io.ReadCloser, error) {
 	return os.Open(fullPathWithRoot)
 
 }
-func (s *Store) Write(key string, r io.Reader) error {
+func (s *Store) Write(key string, r io.Reader) (int64, error) {
 	return s.writeStream(key, r)
 }
-func (s *Store) writeStream(key string, r io.Reader) error {
+func (s *Store) writeStream(key string, r io.Reader) (int64, error) {
 	pathkey := s.PathTransformFunc(key)
 	pathNameWithRoot := fmt.Sprintf("%s/%s", s.Root, pathkey.Pathname)
 	if err := os.MkdirAll(pathNameWithRoot, os.ModePerm); err != nil {
-		return err
+		return 0, err
 	}
-	buf := new(bytes.Buffer)
-	io.Copy(buf, r)
-	// filenameBytes := md5.Sum(buf.Bytes())
-	// filename := hex.EncodeToString(filenameBytes[:])
 
-	// pathAndFilename := fmt.Sprintf("%s/%s", pathkey.Pathname, filename)
 	fullPathWithRoot := fmt.Sprintf("%s/%s", s.Root, pathkey.FullPath())
 	f, err := os.Create(fullPathWithRoot)
 	if err != nil {
-		return err
+		return 0, err
 	}
 	defer f.Close()
 
-	n, err := io.Copy(f, buf)
+	n, err := io.Copy(f, r)
 	if err != nil {
-		return err
+		return 0, err
 	}
-	log.Printf("wrote %d bytes to %s\n", n, fullPathWithRoot)
-	return nil
+	return n, nil
 }
